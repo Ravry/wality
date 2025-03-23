@@ -18,5 +18,6 @@ public:
     Window(unsigned int width, unsigned int height, std::string_view title);
     ~Window();
     void run();
+    void refactor(unsigned int width, unsigned int height);
     void cleanup();
 };

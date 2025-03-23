@@ -26,6 +26,12 @@ void SetWindowBehindDektopIcons(HWND hwndBG)
     }
 }
 
+void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *userParam)
+{
+    if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return; 
+    std::cout << "::ERROR:: " << message <<  std::endl;
+}
+
 Window::Window(unsigned int width, unsigned int height, std::string_view title)
 {
     if (!glfwInit())
@@ -35,7 +41,11 @@ Window::Window(unsigned int width, unsigned int height, std::string_view title)
     }
 
 
-    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);  
 
     window = glfwCreateWindow(800, 600, title.data(), NULL, NULL);
     if (!window)
@@ -51,11 +61,26 @@ Window::Window(unsigned int width, unsigned int height, std::string_view title)
         std::cout << "Failed to initialize GLAD!" << std::endl;
         return;
     }
+    
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+    glDebugMessageCallback(glDebugOutput, nullptr);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
     glfwSwapInterval(1); // Enables VSync
 
-    SetWindowBehindDektopIcons(glfwGetWin32Window(window));
+    glViewport(0, 0, width, height);
+
+    // SetWindowBehindDektopIcons(glfwGetWin32Window(window));
     renderer = std::make_unique<Renderer>();
+
+    glfwSetWindowUserPointer(window, this);
+
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+        glViewport(0, 0, width, height);
+        Window* windowObjPtr = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        windowObjPtr->refactor(width, height);
+    });
 }
 
 Window::~Window() { 
@@ -65,16 +90,29 @@ Window::~Window() {
 }
 
 void Window::run() {
+
+    float deltaTime { 0.f };
+    float lastFrame { 0.f };
+
     while (!glfwWindowShouldClose(window))
     {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         glfwPollEvents();
-
         renderer->render();
-
         glfwSwapBuffers(window);
+        
+        // std::cout << int(1.f / deltaTime) << std::endl;
     }
 
     cleanup();
+}
+
+void Window::refactor(unsigned int width, unsigned int height)
+{
+    renderer->refactor(width, height);
 }
 
 void Window::cleanup()
