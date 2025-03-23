@@ -1,0 +1,44 @@
+cmake_minimum_required(VERSION 3.31)
+
+project(wality)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/glad")
+set(GLFW_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/glfw")
+set(GLM_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/glm")
+set(STB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/stb")
+
+find_package(OpenGL REQUIRED)
+
+add_library(glad STATIC ${GLAD_DIR}/src/glad.c)
+target_include_directories(glad PUBLIC ${GLAD_DIR}/include)
+
+file(GLOB_RECURSE SOURCES src/*.cpp)
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    includes 
+    ${GLFW_DIR}/include
+    ${GLAD_DIR}/include
+    ${GLM_DIR}
+    ${STB_DIR}
+)
+
+target_link_directories(${PROJECT_NAME} PRIVATE 
+    ${GLFW_DIR}/lib-mingw-w64
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    glad
+    glfw3
+    OpenGL::GL
+)
+
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${GLFW_DIR}/lib-mingw-w64/glfw3.dll"
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>
+)
