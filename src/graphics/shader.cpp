@@ -1,10 +1,10 @@
 #include "shader.hpp"
 
-std::string readFileContent(const char* filename) {
+std::string readFileContent(const char* filename) { 
     std::string fileContent;
-    std::ifstream file;
-    file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
+        std::ifstream file;
+        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);    
         file.open(filename);
         std::stringstream fileStream;
         fileStream << file.rdbuf();

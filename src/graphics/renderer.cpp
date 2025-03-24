@@ -24,14 +24,20 @@ Renderer::Renderer()
 {
     glClearColor(1.f, 1.f, 1.f, 1.f);
 
+    std::cout << "creating fbo" << std::endl;
+
     fbo = std::make_unique<FBO>(800, 600, GL_TEXTURE_2D_MULTISAMPLE);
     intermediateFBO = std::make_unique<FBO>(800, 600, GL_TEXTURE_2D);
 
     m_width = 800;
     m_height = 600;
 
+    std::cout << "loading shaders" << std::endl;
+
     shader = std::make_unique<Shader>("res/shaders/vertex.glsl", "res/shaders/fragment.glsl");
     texture = std::make_unique<Texture>("res/images/checkered.png", GL_TEXTURE_2D, GL_NEAREST);
+
+    std::cout << "creating buffers" << std::endl;
 
     vao = std::make_unique<VAO>();
     vbo = std::make_unique<VBO>();
