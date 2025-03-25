@@ -19,8 +19,8 @@ std::unique_ptr<Texture> texture;
 std::unique_ptr<VAO> vao;
 std::unique_ptr<VBO> vbo;
 std::unique_ptr<EBO> ebo;
-std::unique_ptr<GIF> gif;
-std::unique_ptr<Texture> gifTexture;
+std::unique_ptr<Media> media;
+std::unique_ptr<Texture> mediaTexture;
 
 Renderer::Renderer()
 {
@@ -28,8 +28,8 @@ Renderer::Renderer()
 
     std::cout << "creating fbo" << std::endl;
 
-    fbo = std::make_unique<FBO>(800, 600, GL_TEXTURE_2D_MULTISAMPLE);
-    intermediateFBO = std::make_unique<FBO>(800, 600, GL_TEXTURE_2D);
+    // fbo = std::make_unique<FBO>(800, 600, GL_TEXTURE_2D_MULTISAMPLE);
+    // intermediateFBO = std::make_unique<FBO>(800, 600, GL_TEXTURE_2D);
 
     m_width = 800;
     m_height = 600;
@@ -59,8 +59,8 @@ Renderer::Renderer()
     vbo->unbind();
     ebo->unbind();
 
-    gif = std::make_unique<GIF>("res/images/prototype.gif");
-    gifTexture = std::make_unique<Texture>(gif.get());
+    media = std::make_unique<Media>("res/images/video_2.mp4");
+    mediaTexture = std::make_unique<Texture>(media.get());
 }
 
 int frame {0};
@@ -68,53 +68,34 @@ float duration {0.f};
 
 void Renderer::render(float deltaTime)
 {
-    fbo->bind(GL_FRAMEBUFFER);
-
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    gifTexture->bind();
-    shader->use();
-    vao->bind();
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    vao->unbind();
-    shader->unuse();
-    gifTexture->unbind();
-
-    
-    fbo->bind(GL_READ_FRAMEBUFFER);
-    intermediateFBO->bind(GL_DRAW_FRAMEBUFFER);
-    fbo->blit(m_width, m_height, GL_COLOR_ATTACHMENT0);
-    fbo->unbind();
-    
-    glClear(GL_COLOR_BUFFER_BIT);
-    intermediateFBO->g_Albedo->bind();
-
-    shader->use();
-    vao->bind();
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    vao->unbind();
-    shader->unuse();
-
-    intermediateFBO->g_Albedo->unbind();
-
-    int _index = frame % (gif->frames.size());
-
-    if (duration > gif->frames[_index].duration) {
-        frame++;
-        gifTexture->update(gif.get(), _index);
-        // std::cout << _index << std::endl;
-        duration = 0.f;
+    // Check and update texture only when a new frame is available
+    if (!media->frameQueue.empty()) {
+        mediaTexture->update(media->frameQueue.pop().value());    
     }
 
-    duration += deltaTime;
+    // Single pass rendering
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Use shader and texture once
+    shader->use();
+    mediaTexture->bind();
+    vao->bind();
+
+    // Single draw call
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+    // Unbind in reverse order
+    vao->unbind();
+    mediaTexture->unbind();
+    shader->unuse();
 }
 
 void Renderer::refactor(unsigned int width, unsigned int height) {
     m_width = width;
     m_height = height;
 
-    fbo->refactor(width, height, GL_TEXTURE_2D_MULTISAMPLE);
-    intermediateFBO->refactor(width, height, GL_TEXTURE_2D);
+    // fbo->refactor(width, height, GL_TEXTURE_2D_MULTISAMPLE);
+    // intermediateFBO->refactor(width, height, GL_TEXTURE_2D);
 }
 
 void cleanup() {

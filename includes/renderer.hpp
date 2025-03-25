@@ -9,7 +9,7 @@
 #include "vao.hpp"
 #include "vbo.hpp"
 #include "ebo.hpp"
-#include "gif.hpp"
+#include "media.hpp"
 
 class Renderer
 {

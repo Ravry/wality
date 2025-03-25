@@ -51,14 +51,14 @@ Texture::Texture(unsigned int width, unsigned int height, GLenum target, GLenum 
     unbind();
 }
 
-Texture::Texture(GIF* gif) : m_target(GL_TEXTURE_2D) {
+Texture::Texture(Media* media) : m_target(GL_TEXTURE_2D) {
     glGenTextures(1, &m_id);
     bind();
 
-    glTexImage2D(m_target, 0, GL_RGBA, gif->width, gif->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, gif->frames[0].data.data());
+    glTexStorage2D(m_target, 1, GL_RGBA8, 1920, 1080);
 
-    glTexParameteri(m_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(m_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(m_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(m_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(m_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(m_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -69,9 +69,12 @@ void Texture::bind() {
     glBindTexture(m_target, m_id);
 }
 
-void Texture::update(GIF* gif, unsigned int index) {
+// Improved PBO update method with better synchronization
+void Texture::update(const Media_FrameData& frameData) {
     bind();
-    glTexSubImage2D(m_target, 0, 0, 0, gif->width, gif->height, GL_RGBA, GL_UNSIGNED_BYTE, gif->frames[index].data.data());
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
+                    frameData.width, frameData.height, 
+                    GL_RGBA, GL_UNSIGNED_BYTE, frameData.data.data());
     unbind();
 }
 
