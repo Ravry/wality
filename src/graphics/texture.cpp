@@ -51,8 +51,28 @@ Texture::Texture(unsigned int width, unsigned int height, GLenum target, GLenum 
     unbind();
 }
 
+Texture::Texture(GIF* gif) : m_target(GL_TEXTURE_2D) {
+    glGenTextures(1, &m_id);
+    bind();
+
+    glTexImage2D(m_target, 0, GL_RGBA, gif->width, gif->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, gif->frames[0].data.data());
+
+    glTexParameteri(m_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(m_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(m_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(m_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unbind();
+}
+
 void Texture::bind() {
     glBindTexture(m_target, m_id);
+}
+
+void Texture::update(GIF* gif, unsigned int index) {
+    bind();
+    glTexSubImage2D(m_target, 0, 0, 0, gif->width, gif->height, GL_RGBA, GL_UNSIGNED_BYTE, gif->frames[index].data.data());
+    unbind();
 }
 
 void Texture::unbind() {

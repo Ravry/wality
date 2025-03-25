@@ -19,6 +19,8 @@ std::unique_ptr<Texture> texture;
 std::unique_ptr<VAO> vao;
 std::unique_ptr<VBO> vbo;
 std::unique_ptr<EBO> ebo;
+std::unique_ptr<GIF> gif;
+std::unique_ptr<Texture> gifTexture;
 
 Renderer::Renderer()
 {
@@ -56,21 +58,27 @@ Renderer::Renderer()
     vao->unbind();
     vbo->unbind();
     ebo->unbind();
+
+    gif = std::make_unique<GIF>("res/images/prototype.gif");
+    gifTexture = std::make_unique<Texture>(gif.get());
 }
 
-void Renderer::render()
+int frame {0};
+float duration {0.f};
+
+void Renderer::render(float deltaTime)
 {
     fbo->bind(GL_FRAMEBUFFER);
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    texture->bind();
+    gifTexture->bind();
     shader->use();
     vao->bind();
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     vao->unbind();
     shader->unuse();
-    texture->unbind();
+    gifTexture->unbind();
 
     
     fbo->bind(GL_READ_FRAMEBUFFER);
@@ -88,6 +96,17 @@ void Renderer::render()
     shader->unuse();
 
     intermediateFBO->g_Albedo->unbind();
+
+    int _index = frame % (gif->frames.size());
+
+    if (duration > gif->frames[_index].duration) {
+        frame++;
+        gifTexture->update(gif.get(), _index);
+        // std::cout << _index << std::endl;
+        duration = 0.f;
+    }
+
+    duration += deltaTime;
 }
 
 void Renderer::refactor(unsigned int width, unsigned int height) {

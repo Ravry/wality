@@ -101,7 +101,7 @@ void Window::run() {
         lastFrame = currentFrame;
 
         glfwPollEvents();
-        renderer->render();
+        renderer->render(deltaTime);
         glfwSwapBuffers(window);
         
         // std::cout << int(1.f / deltaTime) << std::endl;

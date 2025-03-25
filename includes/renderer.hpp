@@ -9,6 +9,7 @@
 #include "vao.hpp"
 #include "vbo.hpp"
 #include "ebo.hpp"
+#include "gif.hpp"
 
 class Renderer
 {
@@ -19,7 +20,7 @@ public:
     Renderer();
     ~Renderer() = default;
 
-    void render();
+    void render(float deltaTime);
     void refactor(unsigned int width, unsigned int height);
     void cleanup();
 };
